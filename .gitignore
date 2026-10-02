@@ -1,0 +1,30 @@
+/.env.local
+/.env.local.php
+/.env.*.local
+/var/
+/vendor/
+/public/bundles/
+
+###> phpunit ###
+/.phpunit.cache/
+/coverage/
+###< phpunit ###
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
+
+###> phpstan ###
+/.phpstan.cache/
+###< phpstan ###
+
+###> IDE / OS ###
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db
+###< IDE / OS ###
+
+###> symfony/framework-bundle ###
+/config/reference.php
+###< symfony/framework-bundle ###

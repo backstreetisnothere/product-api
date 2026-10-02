@@ -1,0 +1,19 @@
+framework:
+    cache:
+        prefix_seed: seller-api
+
+        pools:
+            # Cache-Aside storage for catalog read models.
+            # RedisTagAwareAdapter keeps tag -> keys sets natively in Redis, so invalidateTags()
+            # is a handful of O(tags) commands instead of a client-side version lookup per read.
+            # Requires maxmemory-policy noeviction or volatile-* (see docker-compose.yml).
+            cache.catalog:
+                adapter: cache.adapter.redis_tag_aware
+                provider: app.redis
+                default_lifetime: 300
+
+            # Storage for rate limiter windows / token buckets.
+            cache.rate_limiter:
+                adapter: cache.adapter.redis
+                provider: app.redis
+                default_lifetime: 3600

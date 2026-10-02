@@ -1,0 +1,21 @@
+security:
+    providers:
+        merchant_provider:
+            id: App\Security\MerchantUserProvider
+
+    firewalls:
+        # Public endpoints: health probes, token exchange (has its own brute-force guard)
+        # and the OpenAPI documentation.
+        public:
+            pattern: ^/api/(doc|v1/health|v1/auth/token)
+            security: false
+
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: merchant_provider
+            custom_authenticators:
+                - App\Security\ApiAuthenticator
+
+    access_control:
+        - { path: ^/api/v1, roles: ROLE_MERCHANT }

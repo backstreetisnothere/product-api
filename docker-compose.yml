@@ -1,0 +1,51 @@
+name: seller-api
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    image: seller-api:dev
+    ports:
+      - "8080:80"
+    environment:
+      APP_ENV: dev
+      SERVER_NAME: ":80"
+      RUN_MIGRATIONS: "1"
+    volumes:
+      - ./:/app
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: seller_api
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d seller_api"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    # volatile-lru: only keys with a TTL may be evicted, which keeps the tag sets of
+    # RedisTagAwareAdapter safe. Never use allkeys-* policies with tag-aware caches.
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "volatile-lru", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  database_data:

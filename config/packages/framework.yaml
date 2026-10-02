@@ -1,0 +1,22 @@
+framework:
+    secret: '%env(APP_SECRET)%'
+    http_method_override: false
+    handle_all_throwables: true
+    trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port', 'x-forwarded-host']
+
+    php_errors:
+        log: true
+
+    # Request/response (de)serialization: API uses snake_case on the wire.
+    serializer:
+        name_converter: 'serializer.name_converter.camel_case_to_snake_case'
+
+    # Distributed lock used by the rate limiter (sliding window / token bucket need it).
+    # A service id (no colon) is handed to StoreFactory as the connection: the shared app.redis.
+    lock:
+        rate_limiter: 'app.redis'
+
+when@test:
+    framework:
+        test: true

@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+.vscode
+var
+vendor
+coverage
+.phpunit.cache
+.php-cs-fixer.cache
+.phpstan.cache
+.env.local
+.env.*.local
+docker-compose*.yml
+README.md
+tests

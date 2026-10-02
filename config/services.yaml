@@ -1,0 +1,34 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/Redis/'
+            - '../src/Cache/LoadState.php'
+            - '../src/Dto/'
+            - '../src/Entity/'
+            - '../src/Exception/'
+            - '../src/Idempotency/Attribute/'
+            - '../src/Idempotency/IdempotencyLock.php'
+            - '../src/Idempotency/IdempotencyOutcome.php'
+            - '../src/Idempotency/StoredResponse.php'
+            - '../src/Security/MerchantIdentity.php'
+            - '../src/Security/MerchantUser.php'
+            - '../src/Security/ApiKeyParts.php'
+            - '../src/Security/GeneratedApiKey.php'
+
+    # THE Redis connection: one fail-fast phpredis connection per worker, shared by the cache pools, the rate
+    # limiter storage, the lock store of the limiter, the idempotency store and the circuit breaker probe.
+    # Creating it never touches the network (see FailFastRedis).
+    app.redis:
+        class: App\Redis\FailFastRedis
+        factory: ['App\Redis\FailFastRedis', 'fromDsn']
+        arguments:
+            - '%env(REDIS_URL)%'
+
+    App\Idempotency\IdempotencyStoreInterface:
+        alias: App\Idempotency\RedisIdempotencyStore

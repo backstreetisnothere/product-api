@@ -1,0 +1,21 @@
+# Loaded only in the "test" environment: functional tests reach these services through the test container.
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Security\ApiKeyService:
+        public: true
+
+    app.redis:
+        class: App\Redis\FailFastRedis
+        factory: ['App\Redis\FailFastRedis', 'fromDsn']
+        arguments: ['%env(REDIS_URL)%']
+        public: true
+
+    App\Idempotency\RedisIdempotencyStore:
+        public: true
+
+    App\Idempotency\IdempotencyStoreInterface:
+        alias: App\Idempotency\RedisIdempotencyStore
+        public: true

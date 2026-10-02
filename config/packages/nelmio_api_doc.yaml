@@ -1,0 +1,133 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Seller API
+            version: 1.0.0
+            description: |
+                Public REST API for marketplace merchants: catalog, prices, warehouses and stock.
+
+                **Authentication.** Send your API key in the `X-API-Key` header, or exchange it for a short-lived
+                JWT via `POST /api/v1/auth/token` and send `Authorization: Bearer <token>`.
+
+                **Rate limiting.** Every response carries `X-RateLimit-Limit`, `X-RateLimit-Remaining` and
+                `X-RateLimit-Reset`. When the quota is exhausted the API answers `429` with a `Retry-After` header.
+                Repeated failed authentications from one IP are temporarily blocked with `429` as well.
+
+                **Idempotency.** Mutating requests accept an `Idempotency-Key` header. A retry with the same key and
+                the same payload replays the original successful response (`Idempotent-Replayed: true`); the same key
+                with a different payload is rejected with `422`; a parallel duplicate gets `409`.
+
+                **Errors** use `application/problem+json` (RFC 9457).
+        servers:
+            - url: http://localhost:8080
+              description: Local docker-compose
+        components:
+            securitySchemes:
+                ApiKeyAuth:
+                    type: apiKey
+                    in: header
+                    name: X-API-Key
+                BearerAuth:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
+            parameters:
+                IdempotencyKey:
+                    name: Idempotency-Key
+                    in: header
+                    required: false
+                    description: 'Unique client-generated key (8-128 chars: letters, digits, dot, underscore, colon, dash). A UUID v4 is recommended.'
+                    schema:
+                        type: string
+                        minLength: 8
+                        maxLength: 128
+                        pattern: '^[A-Za-z0-9._:-]{8,128}$'
+                IdempotencyKeyRequired:
+                    name: Idempotency-Key
+                    in: header
+                    required: true
+                    description: 'Unique client-generated key (8-128 chars: letters, digits, dot, underscore, colon, dash). A UUID v4 is recommended.'
+                    schema:
+                        type: string
+                        minLength: 8
+                        maxLength: 128
+                        pattern: '^[A-Za-z0-9._:-]{8,128}$'
+            schemas:
+                Problem:
+                    type: object
+                    description: RFC 9457 problem details.
+                    required: [type, title, status, detail, code]
+                    properties:
+                        type:
+                            type: string
+                            example: 'urn:seller-api:error:not_found'
+                        title:
+                            type: string
+                            example: Not Found
+                        status:
+                            type: integer
+                            example: 404
+                        detail:
+                            type: string
+                            example: Product not found.
+                        code:
+                            type: string
+                            description: Stable machine-readable error code.
+                            example: not_found
+                        violations:
+                            type: array
+                            description: Present for validation errors.
+                            items:
+                                type: object
+                                properties:
+                                    field:
+                                        type: string
+                                        example: sku
+                                    message:
+                                        type: string
+            headers:
+                RetryAfter:
+                    description: Seconds to wait before retrying.
+                    schema:
+                        type: integer
+            responses:
+                Unauthorized:
+                    description: Missing or invalid credentials.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                NotFound:
+                    description: Resource not found (or it belongs to another merchant).
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                Conflict:
+                    description: Business conflict or a duplicate request is still in progress.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                ValidationFailed:
+                    description: Payload failed validation, or the Idempotency-Key was reused with a different payload.
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                TooManyRequests:
+                    description: Rate limit exceeded.
+                    headers:
+                        Retry-After:
+                            $ref: '#/components/headers/RetryAfter'
+                    content:
+                        application/problem+json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+        security:
+            - ApiKeyAuth: []
+            - BearerAuth: []
+    areas:
+        default:
+            path_patterns:
+                - ^/api/v1

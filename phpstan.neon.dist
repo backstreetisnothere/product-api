@@ -1,0 +1,12 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    tmpDir: .phpstan.cache
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # Tests deliberately assert on values PHPStan can already infer (e.g. closures returning constants).
+        -
+            identifier: staticMethod.alreadyNarrowedType
+            path: tests/*

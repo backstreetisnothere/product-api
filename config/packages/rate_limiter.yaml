@@ -1,0 +1,26 @@
+framework:
+    rate_limiter:
+        # Global per-IP limiter. Runs before authentication and protects the whole stack
+        # (DB, cache, auth layer) from floods of unauthenticated / invalid traffic.
+        api_ip:
+            policy: sliding_window
+            limit: '%env(int:RATE_LIMIT_IP)%'
+            interval: '1 minute'
+            cache_pool: cache.rate_limiter
+            lock_factory: lock.rate_limiter.factory
+
+        # Per-merchant quota. Runs after authentication, keyed by merchant id.
+        api_merchant:
+            policy: sliding_window
+            limit: '%env(int:RATE_LIMIT_MERCHANT)%'
+            interval: '1 minute'
+            cache_pool: cache.rate_limiter
+            lock_factory: lock.rate_limiter.factory
+
+        # Brute-force protection: counts FAILED authentications per client IP.
+        auth_failure:
+            policy: fixed_window
+            limit: '%env(int:RATE_LIMIT_AUTH_FAILURES)%'
+            interval: '15 minutes'
+            cache_pool: cache.rate_limiter
+            lock_factory: lock.rate_limiter.factory
