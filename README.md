@@ -1,4 +1,4 @@
-# Seller API
+# Marketplace Seller API
 
 > High-load public REST API for marketplace merchants: catalog, prices, warehouses and stock — with rate limiting, idempotent writes, tag-aware Redis caching and graceful degradation when Redis is down.
 
